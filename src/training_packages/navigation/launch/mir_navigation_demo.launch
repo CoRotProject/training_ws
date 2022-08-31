@@ -1,0 +1,19 @@
+<launch>
+    <arg name="map_file" default="$(find mir_gazebo)/maps/maze.yaml"/>
+    <arg name="virtual_walls_map_file" default="$(find mir_gazebo)/maps/maze_virtual_walls.yaml"/>
+    <arg name="open_rviz" default="true"/>
+
+    <!-- MIR and maze world-->
+    <include file="$(find mir_navigation)/launch/start_planner.launch">
+        <arg name="map_file" value="$(arg map_file)" />
+        <arg name="virtual_walls_map_file" value="$(arg virtual_walls_map_file)" />
+    </include>
+
+    <!-- AMCL -->
+    <include file="$(find mir_navigation)/launch/amcl.launch"/>
+
+    <!-- rviz -->
+    <group if="$(arg open_rviz)"> 
+        <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find mir_navigation)/rviz/navigation.rviz"/>
+    </group>
+</launch>

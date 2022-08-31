@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: cougarbot_description
+    relative_path: urdf/cougarbot.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/cougarbot.srdf
+  CONFIG:
+    author_name: HUYNH Vu Hoi
+    author_email: vuhoi.huynh@gmail.com
+    generated_timestamp: 1588776487

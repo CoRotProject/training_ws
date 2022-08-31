@@ -1,0 +1,23 @@
+<launch>
+
+    <!-- Start Gazebo with an empty world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch"/>
+
+    <!-- Load the CougarBot URDF model into the parameter server -->
+    <param name="robot_description" textfile="$(find cougarbot_description)/urdf/cougarbot.urdf" />
+
+    <!-- Spawn a CougarBot in Gazebo, taking the description from the parameter server -->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model cougarbot" />
+
+    <!-- Load controller for joints -->
+    <rosparam file="$(find cougarbot_description)/config/controllers.yaml" command="load"/>
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="arm_controller"/>
+
+    <!-- Help to visualize the robot state on Rviz -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+    <!-- Launch Rviz 
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find cougarbot_simulation)/rviz/cougarbot.rviz" />
+    -->
+    
+</launch>

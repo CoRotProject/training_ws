@@ -1,0 +1,285 @@
+Preparation (conda env) :
+
+	- If work on 'MRTA_2020' environment:
+		
+		Install :
+
+			conda install -c conda-forge rospkg -n MRTA_2020
+			conda install -c anaconda yaml -n MRTA_2020
+			conda install -c anaconda numpy -n MRTA_2020
+			conda install -c conda-forge defusedxml -n MRTA_2020
+
+
+		Add shebang to python file :
+
+			#!/home/hvh/miniconda3/envs/MRTA_2020/bin/python
+
+
+	- If work on 'MRTA' environment:
+		
+		Install :
+
+			conda install -c conda-forge rospkg -n MRTA
+			conda install -c anaconda yaml -n MRTA
+			conda install -c anaconda numpy -n MRTA
+			conda install -c conda-forge defusedxml -n MRTA
+			conda install -c sotte empy -n MRTA
+			conda install -c anaconda pyqtgraph -n MRTA
+
+		Add shebang to python file :
+
+			#!/home/hvh/miniconda3/envs/MRTA/bin/python
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+Work (each chapter) :
+
+	- Create 'training_ws'
+
+	--------------------------------------------------------------------------
+
+	- Wander-bot
+
+		Create 'wander_bot' package with dependencies : rospy sensor_msgs geometry_msgs
+
+		Install TB3
+			git clone -b melodic-devel https://github.com/ROBOTIS-GIT/turtlebot3.git
+			git clone -b melodic-devel https://github.com/ROBOTIS-GIT/turtlebot3_msgs.git
+			git clone -b melodic-devel https://github.com/ROBOTIS-GIT/turtlebot3_simulations.git
+
+			Add to '~./zshrc' : export TURTLEBOT3_MODEL=waffle
+
+		Create (shebang MRTA_2020) : 'red_light_green_light.py', 'wander.py'
+
+		Enable python :  chmod u+x red_light_green_light.py && chmod +x wander.py
+
+		Run :	roslaunch turtlebot3_gazebo turtlebot3_world.launch
+				rosrun wander_bot red_light_green_light.py
+				rosrun wander_bot wander.py
+
+	--------------------------------------------------------------------------
+
+	- Teleop-bot
+
+		Create 'teleop_bot' package with dependencies : rospy std_msgs geometry_msgs
+
+		Create (shebang MRTA_2020) : 'key_publisher.py', 'keys_to_twist.py', 'keys_to_twist_using_rate.py', 'keys_to_twist_parameterized.py', 'keys_to_twist_with_ramps.py'
+
+		Enable python :		chmod u+x ...
+
+		Run :	roslaunch turtlebot3_gazebo turtlebot3_world.launch
+				roslaunch turtlebot3_gazebo turtlebot3_gazebo_rviz.launch
+				rosrun teleop_bot key_publisher.py
+
+				rosrun teleop_bot keys_to_twist.py
+				|| rosrun teleop_bot keys_to_twist_using_rate.py
+				|| rosrun teleop_bot keys_to_twist_parameterized.py _linear_scale:=0.5 _angular_scale:=0.4
+				|| rosrun teleop_bot keys_to_twist_with_ramps.py _linear_scale:=0.5 _angular_scale:=1.0_linear_accel:=1.0 _angular_accel:=1.0
+
+				rostopic list
+				rostopic echo cmd_vel
+				rostopic hz cmd_vel
+				rostopic info cmd_vel
+				rosmsg show geometry_msgs/Twist
+				rqt_plot cmd_vel/linear/x cmd_vel/angular/z
+
+	--------------------------------------------------------------------------
+
+	- Building maps
+		Run :	roslaunch turtlebot3_gazebo turtlebot3_world.launch
+				roslaunch turtlebot3_slam turtlebot3_slam.launch slam_methods:=gmapping
+				roslaunch turtlebot3_teleop turtlebot3_teleop_key.launch
+
+				rosrun map_server map_saver -f world
+
+				rostopic echo map_metadata
+
+	--------------------------------------------------------------------------
+
+	- Navigation
+
+		Create 'navigation' package with dependencies : rospy actionlib amcl map_server move_base
+
+		Create (shebang MRTA_2020) : 'patrol.py'
+
+		Enable python : chmod u+x patrol.py
+
+		Run :	roslaunch turtlebot3_gazebo turtlebot3_world.launch
+				roslaunch turtlebot3_navigation turtlebot3_navigation.launch
+				roslaunch turtlebot3_teleop turtlebot3_teleop_key.launch
+
+				rosrun navigation patrol.py
+
+	--------------------------------------------------------------------------
+
+	- On patrol
+
+		Create 'patrolling' package with dependencies : rospy actionlib move_base_msgs smach
+
+		Create (shebang MRTA_2020) : 'patrol.py', 'simple_fsm.py', 'shapes.py', 'shapes2.py', 'patrol_fsm.py', 'better_patrol_fsm.py'
+
+		Enable python : chmod u+x ...
+
+		Test :	rosrun patrolling simple_fsm.py
+				|| rosrun patrolling shapes.py
+				|| rosrun patrolling shapes2.py
+
+		Run :	roslaunch turtlebot3_gazebo turtlebot3_world.launch
+				roslaunch turtlebot3_navigation turtlebot3_navigation.launch
+
+				rosrun patrolling patrol.py
+				|| rosrun patrolling patrol_fsm.py
+				|| rosrun patrolling better_patrol_fsm.py
+
+	--------------------------------------------------------------------------
+
+	- Stockroom-bot
+
+		Create 'stockroom_bot' package with dependencies : rospy gazebo_ros gazebo_msgs geometry_msgs move_base_msgs std_srvs control_msgs moveit_commander moveit_msgs moveit_python tf
+
+			Create folders
+				launch
+					aisle_world.launch
+					nav.launch
+				maps
+					map.pgm
+					map.yaml
+				models
+					bin
+						model.config
+						model.sdf
+						tags
+							generate_codes_and_materials.py
+					product
+						model.config
+						model.sdf
+						stock_products.py
+				scripts
+					go_to_bin.py
+					look_at_bin.py
+					pick_up_item.py
+				worlds
+					aisle.world
+					aisle.world.em
+
+			Create python file (shebang MRTA) : 'generate_codes_and_materials.py', 'stock_products.py', 'go_to_bin.py', 'look_at_bin.py'
+			Create launch file : 'aisle_world.launch', 'nav.launch'
+			Create sdf file
+			Create world file : aisle.world.em
+
+		Add to package.xml
+			<export>
+				<gazebo_ros gazebo_model_path="${prefix}/models"/>
+			</export>
+
+		Run :	sudo apt install ros-melodic-ar-track-alvar
+				python generate_codes_and_materials.py	->	get markers and materials
+
+		Run :	empy aisle.world.em > aisle.world		->	get 'aisle.world'
+
+		Install Fetch Robot:
+			git clone -b melodic-devel https://github.com/fetchrobotics/fetch_ros.git
+			git clone -b gazebo9 https://github.com/fetchrobotics/fetch_gazebo.git
+
+		Run :	roslaunch stockroom_bot stockroom.launch
+				roslaunch fetch_navigation build_map.launch
+				rosrun teleop_bot key_publisher.py
+				rosrun teleop_bot keys_to_twist.py
+				rosrun map_server map_saver
+
+		Run :	roslaunch stockroom_bot stockroom.launch
+				rosrun stockroom_bot stock_products.py
+				roslaunch stockroom_bot nav.launch
+				roslaunch stockroom_bot markers.launch
+				rosrun stockroom_bot go_to_bin.py 3
+				rosrun stockroom_bot pick_up_item.py 3	->>>> ???????
+
+		Fix error 'cannot import pyassimp' of package 'moveit_commander'	->		install 'assimp' from source on MRTA env :
+			in folder 'training_ws/src/dependency' : git clone https://github.com/assimp/assimp.git
+			Run : conda activate MRTA
+			inside folder 'assimp' :	mkdir build && cd build
+										cmake .. -G 'Unix Makefiles'
+										make -j4
+			inside folder 'assimp/port/PyAssimp' :	python setup.py install
+
+		... (to be continued)
+
+	--------------------------------------------------------------------------
+
+	- CougarBot
+
+		Create 'cougarbot_description' package :
+			Add dependencies to package.xml
+				<depend>urdf</depend>
+				<depend>xacro</depend>
+
+			Inside folder :
+				config
+					controllers.yaml
+				urdf
+					cougarbot.urdf
+
+		Create 'cougarbot_simulation' package with dpendency : gazebo_ros
+
+			Inside folder :
+				launch
+					cougarbot.launch
+				rviz
+					cougarbot.rviz
+
+		Create 'cougarbot_moveit_config' package
+
+			Run : roslaunch moveit_setup_assistant setup_assistant.launch
+			Choose :
+				Start			->	Create new moveit			->	cougarbot.urdf
+				Self-collisions	->	Regenerate Default Collision Matrix
+				Virtual Joints	-> 	Nothing
+				Planning Groups	->	Add Group ('arm')	->	KDLKinematicsPlugin	->	Add Joints	->	All Joints	->	Save
+				Robot Poses		->	Nothing
+				End Effectors	->	End Effector Name : hand	->		Parent Link : hand		->	Save
+				Passive Joints	->	Nothing
+				Configuration Files	->	cougarbot_moveit_config
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+		
+
+*** Install ROS packages if necessary :
+
+	Sure
+		ros-melodic-amcl
+		ros-melodic-move-base
+		ros-melodic-geometry2
+		ros-melodic-moveit
+		ros-melodic-moveit-python
+		ros-melodic-robot-controllers
+		ros-melodic-map-server
+		ros-melodic-ar-track-alvar
+		ros-melodic-rgbd-launch
+		ros-melodic-slam-karto
+		ros-melodic-ros-control
+		ros-melodic-joint-trajectory-controller
+	
+	
+	Bonus (not obligatory)
+		ros-melodic-gmapping
+		ros-melodic-gazebo-ros-control
+		ros-melodic-ros-controllers
+		ros-melodic-octomap
+		ros-melodic-industrial-core
+		ros-melodic-joint-state-publisher-gui
+		(ros-melodic-rosserial-python)
+		(ros-melodic-cv-bridge)
+		ros-melodic-smach (in ~/opt/ros/melodic/lib/python2.7/dist-packages/smach_ros/__init__.py	->	add 'smach_ros.util', 'smach_ros.action_server_wrapper', ... due to py2 error)
+			
+
+		
+		
+		
+		
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+*** Install Pip packages
+
+	sudo pip install PyQtGraph	->	fix rqt_plot error
